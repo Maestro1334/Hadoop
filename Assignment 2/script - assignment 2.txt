@@ -1,0 +1,38 @@
+ordersCSV = LOAD '/user/maria_dev/diplomacy/orders.csv' USING PigStorage(',')AS
+	(game_id:chararray,
+    unit_id:chararray,
+    unit_order:chararray,
+    location:chararray,
+    target:chararray,
+    target_dest:chararray,
+    success:chararray,
+    reason:chararray,
+    turn_num:chararray);
+
+filtered_data = FILTER ordersCSV BY (target == '"Holland"');
+group_by_location = GROUP filtered_data BY location;
+
+count_specified_location = FOREACH group_by_location GENERATE group as location, '"Holland"' as target, COUNT($1) as total;
+result = ORDER count_specified_location BY location;
+
+describe result;
+DUMP result;
+
+
+playersCSV = LOAD '/user/maria_dev/diplomacy/players.csv' USING PigStorage(',')AS
+	(game_id:chararray,
+    country:chararray,
+    won:chararray,
+    num_supply_centers:chararray,
+    eliminated:chararray,
+    start_turn:chararray,
+    end_turn:chararray);
+    
+filtered_players = FILTER playersCSV BY (won == '"1"');
+group_by_country = GROUP filtered_players BY country;
+
+count_wins = FOREACH group_by_country GENERATE group as country, COUNT($1) as wins;
+ordered_result = ORDER count_wins BY wins DESC;
+
+describe ordered_result;
+DUMP ordered_result;
